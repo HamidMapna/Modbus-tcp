@@ -43,6 +43,7 @@
       </FileMasks>
       <TransferNewFilesOnly>true</TransferNewFilesOnly>
       <IncludeSubdirectories>true</IncludeSubdirectories>
+      <SelectedDirectories />
       <DeleteDisappearedFiles>true</DeleteDisappearedFiles>
       <ApplyGlobalExclusionList>true</ApplyGlobalExclusionList>
       <Extension>
@@ -69,6 +70,7 @@
     <RelativeSourceDirectory />
     <ConfigurationType>DEBUG</ConfigurationType>
     <BinaryDirectory>build/$(PlatformName)/$(ConfigurationName)</BinaryDirectory>
+    <MainCMakeTarget>mb_master</MainCMakeTarget>
     <MakeCommandTemplate>
       <SkipWhenRunningCommandList>false</SkipWhenRunningCommandList>
       <RemoteHost>
@@ -76,7 +78,7 @@
         <Transport>BuiltinShortcut</Transport>
       </RemoteHost>
       <Command>$(ToolchainMake)</Command>
-      <Arguments>$(ToolchainMakeArgs)</Arguments>
+      <Arguments>$(ToolchainMakeArgs) -j4</Arguments>
       <WorkingDirectory>$(BuildDir)</WorkingDirectory>
       <BackgroundMode xsi:nil="true" />
     </MakeCommandTemplate>
@@ -117,6 +119,7 @@
       <ConfigurationNameCase>Upper</ConfigurationNameCase>
       <DefaultHeaderDiscoveryMode>None</DefaultHeaderDiscoveryMode>
       <EnableFastUpToDateCheck>true</EnableFastUpToDateCheck>
+      <StartupTarget>mb_master</StartupTarget>
     </ProjectModeSettings>
   </Build>
   <CustomBuild>

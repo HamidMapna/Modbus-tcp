@@ -18,38 +18,13 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/tools")
 project (MBUS VERSION 0.1.0)
 
-# Default settings if this is the main project
-if (CMAKE_PROJECT_NAME STREQUAL MBUS)
-  include(CTest)
-
-  # Make option visible in ccmake, cmake-gui
-  option (BUILD_SHARED_LIBS "Build shared library" OFF)
-
-  # Default to release build with debug info
-  if (NOT CMAKE_BUILD_TYPE)
-    set (CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
-      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
-      FORCE)
-  endif (NOT CMAKE_BUILD_TYPE)
-
-  # Default to installing in build directory
-  if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX ${MBUS_BINARY_DIR}/install
-      CACHE PATH "Default install path" FORCE)
-  endif()
-
-  message(STATUS "Current build type is: ${CMAKE_BUILD_TYPE}")
-  message(STATUS "Current install path is: ${CMAKE_INSTALL_PREFIX}")
-  message(STATUS "Building for ${CMAKE_SYSTEM_NAME}")
-endif()
-
 include(AddOsal)
 include(GenerateExportHeader)
 include(CMakeDependentOption)
 
 # Always use standard .o suffix
-set(CMAKE_C_OUTPUT_EXTENSION_REPLACE 1)
-set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
+#set(CMAKE_C_OUTPUT_EXTENSION_REPLACE 1)
+#set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 
 set(LOG_STATE_VALUES "ON;OFF")
 set(LOG_LEVEL_VALUES "DEBUG;INFO;WARNING;ERROR")
@@ -81,9 +56,10 @@ configure_file (
 # Add platform-dependent targets early, so they can be configured by
 # platform
 add_library(mbus "")
-add_executable(mb_master "")
-add_executable(mb_tcp_slave "")
-add_executable(mb_rtu_slave "")
+add_executable(mb_master ${CMAKE_SOURCE_DIR}/src/ports/linux/tcp_rtu_master.c)
+#add_executable(mb_tcp_slave "")
+#add_executable(mb_rtu_slave "")
+
 # Platform configuration
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/${CMAKE_SYSTEM_NAME}.cmake)
 
@@ -92,7 +68,7 @@ generate_export_header(mbus
   EXPORT_FILE_NAME ${MBUS_BINARY_DIR}/include/mb_export.h
   )
 
-set_target_properties (mbus mb_master mb_tcp_slave mb_rtu_slave
+set_target_properties (mbus mb_master #mb_tcp_slave mb_rtu_slave
   PROPERTIES
   C_STANDARD 99
   )
@@ -113,20 +89,13 @@ target_include_directories(mbus
   src
   )
 
-target_include_directories(mb_rtu_slave PRIVATE sample)
-target_include_directories(mb_tcp_slave PRIVATE sample)
+#target_include_directories(mb_rtu_slave PRIVATE sample)
+#target_include_directories(mb_tcp_slave PRIVATE sample)
 
 target_link_libraries(mbus PUBLIC osal)
 target_link_libraries(mb_master PUBLIC mbus)
-target_link_libraries(mb_tcp_slave PUBLIC mbus)
-target_link_libraries(mb_rtu_slave PUBLIC mbus)
-
-install (
-  TARGETS
-  mb_master
-  mb_tcp_slave
-  mb_rtu_slave
-  DESTINATION bin)
+#target_link_libraries(mb_tcp_slave PUBLIC mbus)
+#target_link_libraries(mb_rtu_slave PUBLIC mbus)
 
 install (
   TARGETS mbus
