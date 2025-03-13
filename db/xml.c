@@ -158,25 +158,35 @@ static void getXMLValue_ul(xmlNode *slave_node, const char *target_key_l1, const
   *target_value = strtoul(value, &endptr, 10);
 }
 
+static void extract_slave_node_content(Common_node_t **slave_content_node, xmlNode *slave_node)
+{
+  for (xmlNode *input_desc = slave_node->children; input_desc; input_desc = input_desc->next)
+   {
+      if (input_desc->type == XML_ELEMENT_NODE)
+      {
+         cmd_object_t * object = malloc (sizeof (struct cmd_object));
+         if (object == NULL)
+         {
+            printf ("failed to allocate for input descrete object.\n");
+            exit (EXIT_FAILURE);
+         }
+         getXMLValue_ul (input_desc, "repeat", "", &object->repeat);
+         getXMLValue_cmd (input_desc, "cmd", "", &object->cmd);
+         getXMLValue_tbl (input_desc, "table", "", &object->tbl);
+         getXMLValue_hex (input_desc, "address", "", (int *)&object->addr);
+         getXMLValue_dbl (input_desc, "value", "", &object->value);
+         add_common_node_to_linklist(slave_content_node, (void *)object);
+      }
+   }  
+}
+static void extract_slave_input_desc(slave_t *slave, xmlNode *inputs_desc)
+{
+  extract_slave_node_content(&slave->contents.inputs, inputs_desc);
+}
+
 static void extract_slave_coils(slave_t *slave, xmlNode *coils)
 {
-  for (xmlNode *coil = coils->children; coil; coil = coil->next)
-  {    
-    if (coil->type == XML_ELEMENT_NODE)
-    {
-      cmd_object_t *object = malloc(sizeof(struct cmd_object));      
-      if (object == NULL) {
-        printf("failed to allocate for coil object.\n");
-        exit(EXIT_FAILURE);
-      }
-      getXMLValue_ul(coil, "repeat", "", &object->repeat);
-      getXMLValue_cmd(coil, "cmd", "", &object->cmd);
-      getXMLValue_tbl(coil, "table", "", &object->tbl);
-      getXMLValue_hex(coil, "address", "", (int*)&object->addr);
-      getXMLValue_dbl(coil, "value", "", &object->value);
-      add_common_node_to_linklist(&slave->contents.coils, (void*)object);
-    }
-  }
+  extract_slave_node_content(&slave->contents.coils, coils);
 }
 
 static void extract_slave_content(slave_t *slave, xmlNode *slave_node)
@@ -191,18 +201,13 @@ static void extract_slave_content(slave_t *slave, xmlNode *slave_node)
        }
       if (!xmlStrcmp(slave_childs->name, (const xmlChar *)"inputs")) 
        {
-            printf("");
-            printf("");
+        extract_slave_input_desc(slave, slave_childs);        
        }
       if (!xmlStrcmp(slave_childs->name, (const xmlChar *)"holds")) 
         {
-            printf("");
-            printf("");
         }
       if (!xmlStrcmp(slave_childs->name, (const xmlChar *)"regs")) 
         {
-            printf("");
-            printf("");
         }
     }
   }
