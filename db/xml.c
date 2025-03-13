@@ -179,6 +179,17 @@ static void extract_slave_node_content(Common_node_t **slave_content_node, xmlNo
       }
    }  
 }
+
+static void extract_slave_input_regs(slave_t * slave, xmlNode * inputs_reg)
+{
+   extract_slave_node_content (&slave->contents.input_regs, inputs_reg);
+}
+
+static void extract_slave_holds(slave_t *slave, xmlNode *holds)
+{
+   extract_slave_node_content (&slave->contents.holds_regs, holds);
+}
+
 static void extract_slave_input_desc(slave_t *slave, xmlNode *inputs_desc)
 {
   extract_slave_node_content(&slave->contents.inputs, inputs_desc);
@@ -205,9 +216,11 @@ static void extract_slave_content(slave_t *slave, xmlNode *slave_node)
        }
       if (!xmlStrcmp(slave_childs->name, (const xmlChar *)"holds")) 
         {
+         extract_slave_holds (slave, slave_childs);        
         }
       if (!xmlStrcmp(slave_childs->name, (const xmlChar *)"regs")) 
         {
+         extract_slave_input_regs(slave, slave_childs);        
         }
     }
   }
