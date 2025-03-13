@@ -21,6 +21,8 @@ target_sources (mbus PRIVATE
   ${MBUS_SOURCE_DIR}/include/mb_rtu.h
   ${MBUS_SOURCE_DIR}/include/mb_tcp.h
   ${MBUS_SOURCE_DIR}/include/mb_error.h
+  ${MBUS_SOURCE_DIR}/db/xml.h
+  ${MBUS_SOURCE_DIR}/db/xml.c
   mbus.c
   mb_slave.c
   mb_transport.c

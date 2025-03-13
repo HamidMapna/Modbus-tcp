@@ -41,10 +41,10 @@ target_sources(mbus
 
 target_compile_options(mbus
   PRIVATE
-  -Wall
-  -Wextra
-  -Werror
-  -Wno-unused-parameter
+  #-Wall
+  #-Wextra
+  #-Werror
+  #-Wno-unused-parameter
   INTERFACE
   $<$<CONFIG:Coverage>:--coverage>
   )

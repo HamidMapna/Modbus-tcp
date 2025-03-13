@@ -22,9 +22,9 @@ include(AddOsal)
 include(GenerateExportHeader)
 include(CMakeDependentOption)
 
-# Always use standard .o suffix
-#set(CMAKE_C_OUTPUT_EXTENSION_REPLACE 1)
-#set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
+set(LIBXML2_INCLUDE_DIR /usr/include/libxml2/)
+set(DATABASE_FILE /usr/local/share/xml/db.xml)
+set(XML_DIR ${MBUS_SOURCE_DIR}/db/)
 
 set(LOG_STATE_VALUES "ON;OFF")
 set(LOG_LEVEL_VALUES "DEBUG;INFO;WARNING;ERROR")
@@ -41,6 +41,8 @@ set_property(CACHE MB_TCP_LOG PROPERTY STRINGS ${LOG_STATE_VALUES})
 set(MBUS_TIMEOUT "100"
   CACHE STRING "timeout in ms for something")
 
+# Pass database path to the code as a preprocessor definition
+add_definitions(-DDATABASE_FILE="${DATABASE_FILE}")
 # Generate version numbers
 configure_file (
   version.h.in
@@ -57,8 +59,6 @@ configure_file (
 # platform
 add_library(mbus "")
 add_executable(mb_master ${CMAKE_SOURCE_DIR}/src/ports/linux/tcp_rtu_master.c)
-#add_executable(mb_tcp_slave "")
-#add_executable(mb_rtu_slave "")
 
 # Platform configuration
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/${CMAKE_SYSTEM_NAME}.cmake)
@@ -68,7 +68,7 @@ generate_export_header(mbus
   EXPORT_FILE_NAME ${MBUS_BINARY_DIR}/include/mb_export.h
   )
 
-set_target_properties (mbus mb_master #mb_tcp_slave mb_rtu_slave
+set_target_properties (mbus mb_master 
   PROPERTIES
   C_STANDARD 99
   )
@@ -79,23 +79,21 @@ target_compile_features(mbus
   PRIVATE
   cxx_std_11)
 
+include_directories(${MBUS_SOURCE_DIR}/db/)
+
 target_include_directories(mbus
   PUBLIC
   $<BUILD_INTERFACE:${MBUS_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${MBUS_BINARY_DIR}/include>
   $<INSTALL_INTERFACE:include>
   PRIVATE
+  ${LIBXML2_INCLUDE_DIR}/
   ${MBUS_BINARY_DIR}/src
   src
   )
 
-#target_include_directories(mb_rtu_slave PRIVATE sample)
-#target_include_directories(mb_tcp_slave PRIVATE sample)
-
-target_link_libraries(mbus PUBLIC osal)
+target_link_libraries(mbus PUBLIC osal xml2)
 target_link_libraries(mb_master PUBLIC mbus)
-#target_link_libraries(mb_tcp_slave PUBLIC mbus)
-#target_link_libraries(mb_rtu_slave PUBLIC mbus)
 
 install (
   TARGETS mbus
@@ -118,6 +116,9 @@ install (FILES
   ${MBUS_BINARY_DIR}/include/mb_export.h
   DESTINATION include
   )
-
+  #install db.xml file into target
+install(FILES ${XML_DIR}/db.xml DESTINATION /usr/local/share/xml/)
+ 
+add_subdirectory(./libs libs)
 add_subdirectory (src)
 

@@ -17,13 +17,7 @@
 #include "mb_tcp.h"
 #include "mb_rtu.h"
 #include "mb_bsp.h"
-
-#include <getopt.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <unistd.h>
+#include "xml.h"
 
 static struct opt
 {
@@ -326,8 +320,8 @@ int main (int argc, char * argv[])
    };
    mbus_t * mbus;
    int slave;
-
-   parse_opt (argc, argv);
+   database_t *db = load_database();
+   //parse_opt (argc, argv);
 
    if (opt.tcp)
    {
