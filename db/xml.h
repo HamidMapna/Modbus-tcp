@@ -72,8 +72,9 @@ typedef struct database database_t;
 
 struct database
 {
-   slave_t *slave_list;
+   Common_node_t *slave_list;
+   int slaves_number;
 };
 
-slave_t *load_database();
+database_t *load_database();
 #endif

@@ -26,7 +26,7 @@ int main (int argc, char * argv[])
    };
    mbus_t * mbus;
    int slave;
-   slave_t *slave_list = load_database();
+   database_t *main_db= load_database();
 /*
    if (opt.tcp)
    {

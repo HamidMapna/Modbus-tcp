@@ -235,43 +235,47 @@ static void extract_slave_content(slave_t *slave, xmlNode *slave_node)
   }
 }
 
-static slave_t* load_and_parse_database(database_t *db)
+static void load_and_parse_database(database_t *db)
 {
-  xmlNodePtr root = get_root();
-  slave_t *slave = NULL;
+  xmlNodePtr root = get_root();  
   
-  for (xmlNode *slaves_nodes = root->children; slaves_nodes;
-       slaves_nodes = slaves_nodes->next) {
-    if (slaves_nodes->type == XML_ELEMENT_NODE) {
-      slave = malloc(sizeof(struct slave));
-      if (slave == NULL) {
-        printf("failed to allocate for slave node.\n");
-        exit(EXIT_FAILURE);
-      }
-      for (xmlNode *slave_node = slaves_nodes->children; slave_node;
-           slave_node = slave_node->next) {
-        if (slave_node->type == XML_ELEMENT_NODE) {
+  for (xmlNode *slaves_nodes = root->children; slaves_nodes; slaves_nodes = slaves_nodes->next)
+  {
+    if (slaves_nodes->type == XML_ELEMENT_NODE)
+    {
+      for (xmlNode *slave_node = slaves_nodes->children; slave_node; slave_node = slave_node->next)
+      {
+        if (slave_node->type == XML_ELEMENT_NODE)
+        {
+          slave_t *slave = malloc(sizeof(struct slave));
+          if (slave == NULL)
+          {
+            printf("failed to allocate for slave node.\n");
+            exit(EXIT_FAILURE);
+          }
           getXMLValue_ul(slave_node, "slave_id", "", &slave->slave_id);
           getXMLValue_ul(slave_node, "connection", "port", (int *)&slave->port);
           getXMLValue(slave_node, "connection", "ip", slave->ip);
           extract_slave_content(slave, slave_node);
+          add_common_node_to_linklist(&db->slave_list, (void*)slave);
+          db->slaves_number++;
         }
       }
     }
   }
   xmlFreeDoc(document);
-  xmlCleanupParser();
-  return slave;
+  xmlCleanupParser();  
 }
 
-slave_t *load_database() 
+database_t *load_database() 
 {
-  database_t *db = malloc(sizeof(struct database));
+  database_t *db = calloc(1, sizeof(struct database));
+  
   if (db == NULL) 
   {
     printf("failed to allocate memory for database object. program exits.\n");
     exit(EXIT_FAILURE);
   }
-  slave_t *slaves = load_and_parse_database(db);
-  return slaves;
+  load_and_parse_database(db);
+  return db;
 }
