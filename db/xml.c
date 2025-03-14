@@ -158,7 +158,7 @@ static void getXMLValue_ul(xmlNode *slave_node, const char *target_key_l1, const
   *target_value = strtoul(value, &endptr, 10);
 }
 
-static void extract_slave_node_content(Common_node_t **slave_content_node, xmlNode *slave_node)
+static void extract_slave_node_content(Common_node_t **slave_content_node, int *number, xmlNode *slave_node)
 {
   for (xmlNode *input_desc = slave_node->children; input_desc; input_desc = input_desc->next)
    {
@@ -176,28 +176,37 @@ static void extract_slave_node_content(Common_node_t **slave_content_node, xmlNo
          getXMLValue_hex (input_desc, "address", "", (int *)&object->addr);
          getXMLValue_dbl (input_desc, "value", "", &object->value);
          add_common_node_to_linklist(slave_content_node, (void *)object);
+         (*number)++;
       }
    }  
 }
 
 static void extract_slave_input_regs(slave_t * slave, xmlNode * inputs_reg)
 {
-   extract_slave_node_content (&slave->contents.input_regs, inputs_reg);
+  slave->contents.input_regs_list.input_regs_num = 0;
+  slave->contents.input_regs_list.input_regs = NULL;
+  extract_slave_node_content(&slave->contents.input_regs_list.input_regs, &slave->contents.input_regs_list.input_regs_num, inputs_reg);
 }
 
 static void extract_slave_holds(slave_t *slave, xmlNode *holds)
 {
-   extract_slave_node_content (&slave->contents.holds_regs, holds);
+  slave->contents.hold_regs_list.hold_regs_num = 0;
+  slave->contents.hold_regs_list.holds_regs = NULL;
+  extract_slave_node_content(&slave->contents.hold_regs_list.holds_regs, &slave->contents.hold_regs_list.hold_regs_num, holds);
 }
 
 static void extract_slave_input_desc(slave_t *slave, xmlNode *inputs_desc)
 {
-  extract_slave_node_content(&slave->contents.inputs, inputs_desc);
+  slave->contents.input_descs_list.input_descs_num = 0;
+  slave->contents.input_descs_list.input_descs = NULL;
+  extract_slave_node_content(&slave->contents.input_descs_list.input_descs, &slave->contents.input_descs_list.input_descs_num, inputs_desc);
 }
 
 static void extract_slave_coils(slave_t *slave, xmlNode *coils)
 {
-  extract_slave_node_content(&slave->contents.coils, coils);
+  slave->contents.coils_list.coils_num = 0;
+  slave->contents.coils_list.coils = NULL;
+  extract_slave_node_content(&slave->contents.coils_list.coils, &slave->contents.coils_list.coils_num, coils);
 }
 
 static void extract_slave_content(slave_t *slave, xmlNode *slave_node)
@@ -226,14 +235,15 @@ static void extract_slave_content(slave_t *slave, xmlNode *slave_node)
   }
 }
 
-static int load_and_parse_database(database_t *db)
+static slave_t* load_and_parse_database(database_t *db)
 {
   xmlNodePtr root = get_root();
-
+  slave_t *slave = NULL;
+  
   for (xmlNode *slaves_nodes = root->children; slaves_nodes;
        slaves_nodes = slaves_nodes->next) {
     if (slaves_nodes->type == XML_ELEMENT_NODE) {
-      slave_t *slave = malloc(sizeof(struct slave));
+      slave = malloc(sizeof(struct slave));
       if (slave == NULL) {
         printf("failed to allocate for slave node.\n");
         exit(EXIT_FAILURE);
@@ -251,10 +261,10 @@ static int load_and_parse_database(database_t *db)
   }
   xmlFreeDoc(document);
   xmlCleanupParser();
-  return 1;
+  return slave;
 }
 
-database_t *load_database() 
+slave_t *load_database() 
 {
   database_t *db = malloc(sizeof(struct database));
   if (db == NULL) 
@@ -262,6 +272,6 @@ database_t *load_database()
     printf("failed to allocate memory for database object. program exits.\n");
     exit(EXIT_FAILURE);
   }
-  load_and_parse_database(db);
-  return db;
+  slave_t *slaves = load_and_parse_database(db);
+  return slaves;
 }

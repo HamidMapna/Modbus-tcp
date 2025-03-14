@@ -45,10 +45,26 @@ typedef struct slave
    int slave_id;
    struct  
    {
-     Common_node_t *coils;
-     Common_node_t *inputs;
-     Common_node_t *input_regs;
-     Common_node_t *holds_regs;
+     struct
+     {
+       Common_node_t *coils;
+       int coils_num;
+     }coils_list;
+     struct 
+     {
+        Common_node_t *input_descs;
+        int input_descs_num;
+     }input_descs_list;
+     struct
+     {
+       Common_node_t *input_regs;
+       int input_regs_num;
+     }input_regs_list;
+     struct
+     {
+       Common_node_t *holds_regs;
+       int hold_regs_num;
+     }hold_regs_list;
    } contents;
 }slave_t;
 
@@ -59,5 +75,5 @@ struct database
    slave_t *slave_list;
 };
 
-database_t *load_database();
+slave_t *load_database();
 #endif
