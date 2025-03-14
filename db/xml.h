@@ -1,6 +1,7 @@
 #ifndef XML_H
 #define XML_H
 
+#include "mb_tcp.h"
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,8 +42,8 @@ typedef struct Common_node
 typedef struct slave
 {
    char		ip[20];
-   uint16_t port;
-   int slave_id;
+   mb_tcp_cfg_t cfg;
+   int slave_id;   
    struct  
    {
      struct

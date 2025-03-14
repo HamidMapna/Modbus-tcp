@@ -35,6 +35,8 @@ extern "C" {
 typedef struct mb_tcp_cfg
 {
    uint16_t port;
+   uint32_t priority;
+   size_t stack_size;
 } mb_tcp_cfg_t;
 
 typedef struct mb_tcp mb_tcp_t;

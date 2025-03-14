@@ -254,8 +254,10 @@ static void load_and_parse_database(database_t *db)
             exit(EXIT_FAILURE);
           }
           getXMLValue_ul(slave_node, "slave_id", "", &slave->slave_id);
-          getXMLValue_ul(slave_node, "connection", "port", (int *)&slave->port);
+          getXMLValue_ul(slave_node, "connection", "port", (int *)&slave->cfg.port);
           getXMLValue(slave_node, "connection", "ip", slave->ip);
+          slave->cfg.priority = 15;
+          slave->cfg.stack_size = 2048;
           extract_slave_content(slave, slave_node);
           add_common_node_to_linklist(&db->slave_list, (void*)slave);
           db->slaves_number++;
