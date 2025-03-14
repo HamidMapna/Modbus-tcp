@@ -20,9 +20,50 @@
 #include "xml.h"
 
 #define APP_MAIN_SLEEPTIME_US 5000 * 1000
+
+static void monitor_type(Common_node_t *node_list, mb_tcp_cfg_t *cfg)
+{
+  while (node_list)
+  {
+    cmd_object_t *cmd_object = (cmd_object_t *)node_list->object;
+    
+    for (int i = 0; i < cmd_object->repeat; i++)
+    {
+      int error = 0;
+      mb_address_t address = MB_ADDRESS(cmd_object->tbl, cmd_object->addr);
+
+      if (cmd_object->cmd == READ)
+      {
+        error = mbus_read((mbus_t *)cfg->bus, cfg->slave_hdl, address, 1, &cmd_object->value);
+      }
+      else if (cmd_object->cmd == WRITE)
+      {
+        error = mbus_write_single((mbus_t*)cfg->bus, cfg->slave_hdl, address, cmd_object->value);
+      } else
+      {
+        printf("unknown command./n");
+      }
+
+      if (!error)
+        printf("cmd: %d, value: %04ul\n", cmd_object->cmd, cmd_object->value);
+      
+      usleep(10 * 1000);
+    }
+    node_list = node_list->next;
+  }
+}
+
 static void mb_slave_thread(void *arg)
 {
-  
+  slave_t *slave = arg;
+  while (true)
+  {
+    monitor_type(slave->coils_list.coils, &slave->cfg);  
+    monitor_type(slave->input_dsc_list.input_dsc, &slave->cfg);  
+    monitor_type(slave->hold_regs_list.holds_regs, &slave->cfg);  
+    monitor_type(slave->input_regs_list.input_regs, &slave->cfg);
+    usleep(1000);
+  }
 }
 int main (int argc, char * argv[])
 {
@@ -37,67 +78,16 @@ int main (int argc, char * argv[])
      mb_transport_t *curr_tcp;
      slave_t *curr_slave = (slave_t *)slave_list_head->object;
      curr_tcp = mb_tcp_init(&curr_slave->cfg);
-     mbus_t *curr_mbus = mbus_create(&mb_master_cfg, curr_tcp);
+     curr_slave->cfg.bus = (void*) mbus_create(&mb_master_cfg, curr_tcp);
 
-     int slave_hd = mbus_connect(curr_mbus, curr_slave->ip);
+     curr_slave->cfg.slave_hdl = mbus_connect(curr_slave->cfg.bus, curr_slave->ip);
 
      /* monitor slave tasks*/
-     os_thread_create("tMbSlave", curr_slave->cfg.priority, curr_slave->cfg.stack_size, mb_slave_thread, slave_hd);
+     os_thread_create("tMbSlave", curr_slave->cfg.priority, curr_slave->cfg.stack_size, mb_slave_thread, curr_slave);
      slave_list_head = slave_list_head->next;
    }
 
    for (;;) {
      os_usleep(APP_MAIN_SLEEPTIME_US);
    }
-   /*
-      if (opt.tcp)
-      {
-         mb_transport_t * tcp;
-
-         tcp = mb_tcp_init (&opt.tcp_details.cfg);
-         mbus = mbus_create (&mb_master_cfg, tcp);
-
-         slave = mbus_connect (mbus, opt.tcp_details.ip);
-      }
-      else if (opt.rtu)
-      {
-         mb_transport_t * rtu;
-
-         rtu = mb_rtu_create (opt.rtu_details.device, &opt.rtu_details.cfg);
-         mbus = mbus_create (&mb_master_cfg, rtu);
-
-         slave = mbus_connect (mbus, opt.rtu_details.unit);
-      }
-      else
-      {
-         fail (argv[0], "Unknown transport");
-      }
-
-      for (int i = 0; i < opt.repeat; i++)
-      {
-         uint16_t value = 0;
-         int error = 0;
-         mb_address_t address = MB_ADDRESS (opt.table, opt.address);
-
-         if (opt.read)
-         {
-            error = mbus_read (mbus, slave, address, 1, &value);
-         }
-         else if (opt.write)
-         {
-            error = mbus_write_single (mbus, slave, address, opt.value);
-         }
-         else
-         {
-            fail (argv[0], "Unknown command");
-         }
-
-         if (error)
-            printf ("Modbus function failed (%s).\n", mb_error_literal (error));
-         else if (opt.read)
-            printf ("0x%04x\n", value);
-
-         usleep (opt.delay * 1000);
-      }
-   */
 }

@@ -183,30 +183,30 @@ static void extract_slave_node_content(Common_node_t **slave_content_node, int *
 
 static void extract_slave_input_regs(slave_t * slave, xmlNode * inputs_reg)
 {
-  slave->contents.input_regs_list.input_regs_num = 0;
-  slave->contents.input_regs_list.input_regs = NULL;
-  extract_slave_node_content(&slave->contents.input_regs_list.input_regs, &slave->contents.input_regs_list.input_regs_num, inputs_reg);
+  slave->input_regs_list.input_regs_num = 0;
+  slave->input_regs_list.input_regs = NULL;
+  extract_slave_node_content(&slave->input_regs_list.input_regs, &slave->input_regs_list.input_regs_num, inputs_reg);
 }
 
 static void extract_slave_holds(slave_t *slave, xmlNode *holds)
 {
-  slave->contents.hold_regs_list.hold_regs_num = 0;
-  slave->contents.hold_regs_list.holds_regs = NULL;
-  extract_slave_node_content(&slave->contents.hold_regs_list.holds_regs, &slave->contents.hold_regs_list.hold_regs_num, holds);
+  slave->hold_regs_list.hold_regs_num = 0;
+  slave->hold_regs_list.holds_regs = NULL;
+  extract_slave_node_content(&slave->hold_regs_list.holds_regs, &slave->hold_regs_list.hold_regs_num, holds);
 }
 
 static void extract_slave_input_desc(slave_t *slave, xmlNode *inputs_desc)
 {
-  slave->contents.input_descs_list.input_descs_num = 0;
-  slave->contents.input_descs_list.input_descs = NULL;
-  extract_slave_node_content(&slave->contents.input_descs_list.input_descs, &slave->contents.input_descs_list.input_descs_num, inputs_desc);
+  slave->input_dsc_list.input_descs_num = 0;
+  slave->input_dsc_list.input_dsc = NULL;
+  extract_slave_node_content(&slave->input_dsc_list.input_dsc,  &slave->input_dsc_list.input_descs_num, inputs_desc);
 }
 
 static void extract_slave_coils(slave_t *slave, xmlNode *coils)
 {
-  slave->contents.coils_list.coils_num = 0;
-  slave->contents.coils_list.coils = NULL;
-  extract_slave_node_content(&slave->contents.coils_list.coils, &slave->contents.coils_list.coils_num, coils);
+  slave->coils_list.coils_num = 0;
+  slave->coils_list.coils = NULL;
+  extract_slave_node_content(&slave->coils_list.coils, &slave->coils_list.coils_num, coils);
 }
 
 static void extract_slave_content(slave_t *slave, xmlNode *slave_node)

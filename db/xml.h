@@ -39,34 +39,38 @@ typedef struct Common_node
    struct Common_node *next;
 }Common_node_t;
 
+typedef struct coils_list{
+  Common_node_t *coils;
+  int coils_num;
+} coils_list_t;
+
+typedef struct input_dsc_list
+{
+  Common_node_t *input_dsc;
+  int input_descs_num;
+} input_dsc_list_t;
+
+typedef struct input_regs_list
+{
+  Common_node_t *input_regs;
+  int input_regs_num;
+} input_regs_list_t;
+
+typedef struct hold_regs_list
+{
+  Common_node_t *holds_regs;
+  int hold_regs_num;
+} hold_regs_list_t;
+
 typedef struct slave
 {
    char		ip[20];
    mb_tcp_cfg_t cfg;
-   int slave_id;   
-   struct  
-   {
-     struct
-     {
-       Common_node_t *coils;
-       int coils_num;
-     }coils_list;
-     struct 
-     {
-        Common_node_t *input_descs;
-        int input_descs_num;
-     }input_descs_list;
-     struct
-     {
-       Common_node_t *input_regs;
-       int input_regs_num;
-     }input_regs_list;
-     struct
-     {
-       Common_node_t *holds_regs;
-       int hold_regs_num;
-     }hold_regs_list;
-   } contents;
+   int slave_id;
+   coils_list_t		 coils_list;
+   input_dsc_list_t	 input_dsc_list;
+   input_regs_list_t input_regs_list;
+   hold_regs_list_t  hold_regs_list;
 }slave_t;
 
 typedef struct database database_t;
