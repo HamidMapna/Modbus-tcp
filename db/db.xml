@@ -65,6 +65,71 @@
 					<address>0x0002</address>								
 				</reg>
 			</regs>
-		</slave>		
+		</slave>
+		<slave>
+			<slave_id>2</slave_id>
+			<connection transport="tcp">
+				<ip>192.168.100.40</ip>
+				<port>503</port>
+			</connection>
+			<coils>
+				<coil>
+					<repeat>1</repeat>
+					<cmd>read</cmd>
+					<table>coil</table>
+					<address>0x0002</address>
+				</coil>
+				<coil>
+					<repeat>1</repeat>
+					<cmd>read</cmd>
+					<table>coil</table>
+					<address>0x001A</address>
+				</coil>
+				<coil>
+					<repeat>1</repeat>
+					<cmd>write</cmd>
+					<table>coil</table>
+					<address>0x0006</address>
+					<value>1</value>
+				</coil>
+			</coils>
+			<inputs>
+				<input>
+					<repeat>1</repeat>
+					<cmd>read</cmd>
+					<table>input</table>
+					<address>0x0001</address>
+				</input>
+				<input>
+					<repeat>1</repeat>
+					<cmd>read</cmd>
+					<table>input</table>
+					<address>0x0005</address>
+				</input>
+			</inputs>
+			<holds>
+				<hold>
+					<repeat>1</repeat>
+					<cmd>read</cmd>
+					<table>hold</table>
+					<address>0x0004</address>
+				</hold>
+				<hold>
+					<repeat>1</repeat>
+					<cmd>write</cmd>
+					<table>hold</table>
+					<address>0x0003</address>
+					<value>42</value>
+				</hold>
+			</holds>
+			<regs>
+				<reg>
+					<repeat>1</repeat>
+					<cmd>read</cmd>
+					<table>reg</table>
+					<address>0x0002</address>
+				</reg>
+			</regs>
+		</slave>
 	</slaves>
 </root>

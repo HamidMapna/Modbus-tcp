@@ -14,14 +14,11 @@
  ********************************************************************/
 
 #include "mbus.h"
-#include "mb_tcp.h"
-#include "mb_rtu.h"
-#include "mb_bsp.h"
 #include "xml.h"
 
 #define APP_MAIN_SLEEPTIME_US 5000 * 1000
 
-static void monitor_type(Common_node_t *node_list, mb_tcp_cfg_t *cfg)
+static void monitor_slaves(Common_node_t *node_list, mb_tcp_cfg_t *cfg)
 {
   while (node_list)
   {
@@ -44,8 +41,8 @@ static void monitor_type(Common_node_t *node_list, mb_tcp_cfg_t *cfg)
         printf("unknown command./n");
       }
 
-      if (!error)
-        printf("cmd: %d, value: %04ul\n", cmd_object->cmd, cmd_object->value);
+      //if (!error)
+     //   printf("cmd: %s, value: %.2u\n", (cmd_object->cmd == READ)?"read":"write", cmd_object->value);
       
       usleep(10 * 1000);
     }
@@ -57,12 +54,12 @@ static void mb_slave_thread(void *arg)
 {
   slave_t *slave = arg;
   while (true)
-  {
-    monitor_type(slave->coils_list.coils, &slave->cfg);  
-    monitor_type(slave->input_dsc_list.input_dsc, &slave->cfg);  
-    monitor_type(slave->hold_regs_list.holds_regs, &slave->cfg);  
-    monitor_type(slave->input_regs_list.input_regs, &slave->cfg);
-    usleep(1000);
+  { 
+    monitor_slaves(slave->coils_list.coils, &slave->cfg);
+    monitor_slaves(slave->input_dsc_list.input_dsc, &slave->cfg);
+    monitor_slaves(slave->hold_regs_list.holds_regs, &slave->cfg);
+    monitor_slaves(slave->input_regs_list.input_regs, &slave->cfg);
+    sleep(10 * 1000);
   }
 }
 int main (int argc, char * argv[])
@@ -83,7 +80,10 @@ int main (int argc, char * argv[])
      curr_slave->cfg.slave_hdl = mbus_connect(curr_slave->cfg.bus, curr_slave->ip);
 
      /* monitor slave tasks*/
-     os_thread_create("tMbSlave", curr_slave->cfg.priority, curr_slave->cfg.stack_size, mb_slave_thread, curr_slave);
+     char slave_id[10] = {'\0'};
+     sprintf(slave_id, "slave_%d", curr_slave->slave_id);
+     os_thread_create(slave_id, curr_slave->cfg.priority,
+                      curr_slave->cfg.stack_size, mb_slave_thread, curr_slave);
      slave_list_head = slave_list_head->next;
    }
 

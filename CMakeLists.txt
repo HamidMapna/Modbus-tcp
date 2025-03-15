@@ -58,7 +58,7 @@ configure_file (
 # Add platform-dependent targets early, so they can be configured by
 # platform
 add_library(mbus "")
-add_executable(mb_master ${CMAKE_SOURCE_DIR}/src/ports/linux/tcp_rtu_master.c)
+add_executable(mb_master ${CMAKE_SOURCE_DIR}/main/tcp_rtu_master.c)
 
 # Platform configuration
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/${CMAKE_SYSTEM_NAME}.cmake)
