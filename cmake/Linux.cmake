@@ -59,7 +59,7 @@ target_link_libraries(mbus
 target_sources(mb_master
   PRIVATE
   src/ports/linux/mb_bsp.c
-  main/tcp_rtu_master.c
+  main/tcp_master.c
   )
 
 if (BUILD_TESTING)

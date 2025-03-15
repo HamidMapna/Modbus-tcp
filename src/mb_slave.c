@@ -411,7 +411,7 @@ void mb_slave_handle_request (mb_slave_t * slave, pdu_txn_t * transaction)
          if (!mb_pdu_rx_bc (transport))
          {
             tx_count =
-               mb_slave_read_bits (transport, &slave->iomap->coils, pdu);
+               mb_slave_read_bits (transport, &slave->db->coils, pdu);
          }
          break;
       case PDU_READ_INPUTS:
@@ -551,9 +551,7 @@ void mb_slave_shutdown (mb_slave_t * slave)
    slave->running = 0;
 }
 
-mb_slave_t * mb_slave_init (
-   const mb_slave_cfg_t * cfg,
-   mb_transport_t * transport)
+mb_slave_t * mb_slave_init (mb_transport_t * transport, database_t * main_db)
 {
    mb_slave_t * slave;
 
@@ -561,20 +559,20 @@ mb_slave_t * mb_slave_init (
    slave = malloc (sizeof (mb_slave_t));
    CC_ASSERT (slave != NULL);
 
-   slave->iomap = cfg->iomap;
-
+   //slave->iomap = cfg->iomap;
+   slave->db = main_db;
    /* Set transport layer */
    slave->transport = transport;
    transport->is_server = true;
 
-   slave->id = cfg->id;
+   slave->id = 2;
    slave->running = 1;
 
    /* Start slave task */
    os_thread_create (
       "tMbSlave",
-      cfg->priority,
-      cfg->stack_size,
+      15,
+      2048,
       mb_slave,
       slave);
 

@@ -73,12 +73,20 @@ typedef struct slave
    hold_regs_list_t  hold_regs_list;
 }slave_t;
 
+typedef struct master{
+  coils_list_t coils_list;
+  input_dsc_list_t input_dsc_list;
+  input_regs_list_t input_regs_list;
+  hold_regs_list_t hold_regs_list;
+} master_t;
+
 typedef struct database database_t;
 
 struct database
 {
-   Common_node_t *slave_list;
    int slaves_number;
+   Common_node_t *slave_list;
+   Common_node_t *master_node;
 };
 
 database_t *load_database();

@@ -132,4 +132,17 @@
 			</regs>
 		</slave>
 	</slaves>
+	<master>
+		<coils>
+			<address>0x55</address>
+			<address>0xAA</address>
+			<address>0x33</address>			
+		</coils>
+		<holds>
+			<address>0x1234</address>
+			<address>0x5678</address>
+			<address>0x55AA</address>
+			<address>0xAA55</address>
+		</holds>
+	</master>
 </root>

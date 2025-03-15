@@ -29,6 +29,7 @@ extern "C" {
 #include "mb_error.h"
 
 #include "mb_export.h"
+#include "xml.h"
 
 typedef struct mb_iotable
 {
@@ -143,7 +144,8 @@ typedef struct mb_slave
    uint8_t id;
    int running;
    mb_transport_t * transport;
-   const mb_iomap_t * iomap;
+   database_t * db;
+  // const mb_iomap_t * iomap;
 } mb_slave_t;
 
 /**
@@ -308,9 +310,10 @@ typedef struct mb_slave
  *
  * \return slave handle to be used in further operations
  */
-MB_EXPORT mb_slave_t * mb_slave_init (
-   const mb_slave_cfg_t * cfg,
-   mb_transport_t * transport);
+MB_EXPORT mb_slave_t * mb_slave_init (   
+   mb_transport_t * transport,
+   database_t * main_db
+);
 
 /**
  * Shutdown a running slave.

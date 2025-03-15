@@ -15,6 +15,7 @@
 
 #include "mbus.h"
 #include "xml.h"
+#include "mb_slave.h"
 
 #define APP_MAIN_SLEEPTIME_US 5000 * 1000
 
@@ -62,30 +63,60 @@ static void mb_slave_thread(void *arg)
     sleep(10 * 1000);
   }
 }
-int main (int argc, char * argv[])
+
+static void init_slaves (database_t *main_db)
 {
    static mbus_cfg_t mb_master_cfg = {
       .timeout = 1000,
    };
-   database_t *main_db= load_database();
-   Common_node_t *slave_list_head = main_db->slave_list;
+   Common_node_t * slave_list_head = main_db->slave_list;
 
-   while (slave_list_head)   
+   while (slave_list_head)
    {
-     mb_transport_t *curr_tcp;
-     slave_t *curr_slave = (slave_t *)slave_list_head->object;
-     curr_tcp = mb_tcp_init(&curr_slave->cfg);
-     curr_slave->cfg.bus = (void*) mbus_create(&mb_master_cfg, curr_tcp);
+      mb_transport_t * curr_tcp;
+      slave_t * curr_slave = (slave_t *)slave_list_head->object;
+      curr_tcp = mb_tcp_init (&curr_slave->cfg);
+      curr_slave->cfg.bus = (void *)mbus_create (&mb_master_cfg, curr_tcp);
 
-     curr_slave->cfg.slave_hdl = mbus_connect(curr_slave->cfg.bus, curr_slave->ip);
+      curr_slave->cfg.slave_hdl =
+         mbus_connect (curr_slave->cfg.bus, curr_slave->ip);
 
-     /* monitor slave tasks*/
-     char slave_id[10] = {'\0'};
-     sprintf(slave_id, "slave_%d", curr_slave->slave_id);
-     os_thread_create(slave_id, curr_slave->cfg.priority,
-                      curr_slave->cfg.stack_size, mb_slave_thread, curr_slave);
-     slave_list_head = slave_list_head->next;
+      /* monitor slave tasks*/
+      char slave_id[10] = {'\0'};
+      sprintf (slave_id, "slave_%d", curr_slave->slave_id);
+      os_thread_create (
+         slave_id,
+         curr_slave->cfg.priority,
+         curr_slave->cfg.stack_size,
+         mb_slave_thread,
+         curr_slave);
+      slave_list_head = slave_list_head->next;
    }
+}
+
+  mb_slave_t * mb_tcp_start (database_t * main_db)
+{
+    mb_slave_t *slave;
+    mb_transport_t *tcp;
+    static const mb_tcp_cfg_t mb_tcp_cfg = {
+        .port = 8502,
+    };
+
+    tcp = mb_tcp_init(&mb_tcp_cfg);
+    slave = mb_slave_init(tcp, main_db);
+    return slave;
+  }
+  
+static void init_master(database_t *main_db)
+{
+  mb_slave_t *s = mb_tcp_start(main_db);
+}
+
+int main (int argc, char * argv[])
+{
+   database_t *main_db= load_database();
+   init_slaves (main_db);
+   init_master(main_db);
 
    for (;;) {
      os_usleep(APP_MAIN_SLEEPTIME_US);
