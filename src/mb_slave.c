@@ -391,17 +391,17 @@ static int mb_slave_vendor (
 
    return EILLEGAL_FUNCTION;
 }
-
+/*
 void mb_slave_handle_request (mb_slave_t * slave, pdu_txn_t * transaction)
 {
    mb_transport_t * transport = slave->transport;
    pdu_t * pdu = transaction->data;
    int rx_count;
    int tx_count = 0;
-
+*/
    /* Wait for incoming request. Set a timeout to be able to retry
       the call if the slave ID changes. */
-   rx_count = mb_pdu_rx (transport, transaction, PDU_TIMEOUT);
+/* rx_count = mb_pdu_rx (transport, transaction, PDU_TIMEOUT);
 
    if (rx_count > 0)
    {
@@ -473,9 +473,9 @@ void mb_slave_handle_request (mb_slave_t * slave, pdu_txn_t * transaction)
          tx_count = mb_slave_vendor (transport, slave->iomap, pdu, rx_count);
          break;
       }
-
+      */
       /* Check for exception */
-      if (tx_count < 0)
+/* if (tx_count < 0)
       {
          pdu_exception_t * exception = &pdu->exception;
 
@@ -484,28 +484,28 @@ void mb_slave_handle_request (mb_slave_t * slave, pdu_txn_t * transaction)
 
          tx_count = sizeof (*exception);
       }
-
+      */
       /* Respond only if no further messages have appeared on bus */
-      if (mb_pdu_rx_avail (transport))
+/* if (mb_pdu_rx_avail (transport))
       {
          /* The master has timed out and sent a new request. We
           * have no way of knowing when this request arrived; the
           * master may have timed out waiting for a response to
           * this request also. To be safe we ignore this request.
           */
-
+/*
          rx_count = mb_pdu_rx (transport, transaction, 0);
          (void)rx_count;
       }
       /* No response to broadcast messages. */
-      else if (!mb_pdu_rx_bc (transport))
+/* else if (!mb_pdu_rx_bc (transport))
       {
          /* Send response */
-         mb_pdu_tx (transport, transaction, tx_count);
+/* mb_pdu_tx (transport, transaction, tx_count);
       }
    }
 }
-
+*/
 static void mb_slave (void * arg)
 {
    mb_slave_t * slave = arg;
@@ -532,7 +532,7 @@ static void mb_slave (void * arg)
 
       transaction.unit = slave->id;
 
-      mb_slave_handle_request (slave, &transaction);
+      //mb_slave_handle_request (slave, &transaction);
    }
 }
 

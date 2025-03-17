@@ -24,13 +24,17 @@ typedef enum
   UNKNOWN = 5
 }tbl_t;
 
-typedef struct cmd_object
+typedef struct master_address
 {
-   int repeat;
-   cmd_t cmd;
-   tbl_t tbl;
-   uint16_t addr;
-   uint32_t value;
+  uint16_t addr;
+} master_address_t;
+
+typedef struct cmd_object {
+  int repeat;
+  cmd_t cmd;
+  tbl_t tbl;
+  uint16_t addr;
+  uint32_t value;
 } cmd_object_t;
 
 typedef struct Common_node

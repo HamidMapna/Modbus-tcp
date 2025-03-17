@@ -235,6 +235,93 @@ static void extract_slave_content(slave_t *slave, xmlNode *slave_node)
   }
 }
 
+void extract_master_nodes_content(Common_node_t **master_content_node, int *number, xmlNode *master_node)
+{
+  for (xmlNode *input_desc = master_node->children; input_desc; input_desc = input_desc->next)
+  {
+    if (input_desc->type == XML_ELEMENT_NODE) {
+      master_address_t *object = malloc(sizeof(struct master_address));
+      if (object == NULL)
+      {
+        printf("failed to allocate for master address object.\n");
+        exit(EXIT_FAILURE);
+      }
+
+      char value[20] = {'\0'};
+      char *endptr;
+      strcpy(value, (char *)xmlNodeGetContent(input_desc));
+      object->addr = strtoul(value, &endptr, 16);
+      add_common_node_to_linklist(master_content_node, (void *)object);
+      (*number)++;
+    }
+  }
+}
+
+static void extract_master_coils(master_t *master, xmlNode *master_child)
+{
+  master->coils_list.coils_num = 0;
+  master->coils_list.coils = NULL;
+  extract_master_nodes_content(&master->coils_list.coils, &master->coils_list.coils_num, master_child);
+}
+
+static void extract_master_holds(master_t *master, xmlNode *master_child)
+{
+  master->hold_regs_list.hold_regs_num = 0;
+  master->hold_regs_list.holds_regs = NULL;
+  extract_master_nodes_content(&master->hold_regs_list.holds_regs, &master->hold_regs_list.hold_regs_num, master_child);
+}
+
+static void traverese_master(xmlNode *master_node, database_t *db)
+{
+  master_t *master = malloc(sizeof(struct master));
+
+  if (master == NULL)
+  {
+    printf("failed to allocate for master node./n");
+    exit(EXIT_FAILURE);
+  }
+  
+  for (xmlNode *master_child = master_node->children; master_child; master_child = master_child->next)
+  {
+    if (master_child->type == XML_ELEMENT_NODE)
+    {
+      if (!xmlStrcmp(master_child->name, (const xmlChar *)"coils"))
+      {
+        extract_master_coils(master, master_child);
+      }
+      else if (!xmlStrcmp(master_child->name, (const xmlChar *)"holds"))
+      {
+        extract_master_holds(master, master_child);
+      }
+    }
+  }
+  add_common_node_to_linklist(&db->master_node, (void *)master);
+}
+
+static void traverese_slaves(xmlNode *slaves_nodes, database_t *db)
+{
+  for (xmlNode *slave_node = slaves_nodes->children; slave_node; slave_node = slave_node->next)
+  {
+    if (slave_node->type == XML_ELEMENT_NODE)
+    {
+      slave_t *slave = malloc(sizeof(struct slave));
+      if (slave == NULL)
+      {
+        printf("failed to allocate for slave node.\n");
+        exit(EXIT_FAILURE);
+      }
+      getXMLValue_ul(slave_node, "slave_id", "", &slave->slave_id);
+      getXMLValue_ul(slave_node, "connection", "port", (int *)&slave->cfg.port);
+      getXMLValue(slave_node, "connection", "ip", slave->ip);
+      slave->cfg.priority = 15;
+      slave->cfg.stack_size = 2048;
+      extract_slave_content(slave, slave_node);
+      add_common_node_to_linklist(&db->slave_list, (void *)slave);
+      db->slaves_number++;
+    }
+  }
+}
+
 static void load_and_parse_database(database_t *db)
 {
   xmlNodePtr root = get_root();  
@@ -243,25 +330,13 @@ static void load_and_parse_database(database_t *db)
   {
     if (slaves_nodes->type == XML_ELEMENT_NODE)
     {
-      for (xmlNode *slave_node = slaves_nodes->children; slave_node; slave_node = slave_node->next)
+      if (!strcmp((const char *)slaves_nodes->name, "slaves"))
       {
-        if (slave_node->type == XML_ELEMENT_NODE)
-        {
-          slave_t *slave = malloc(sizeof(struct slave));
-          if (slave == NULL)
-          {
-            printf("failed to allocate for slave node.\n");
-            exit(EXIT_FAILURE);
-          }
-          getXMLValue_ul(slave_node, "slave_id", "", &slave->slave_id);
-          getXMLValue_ul(slave_node, "connection", "port", (int *)&slave->cfg.port);
-          getXMLValue(slave_node, "connection", "ip", slave->ip);
-          slave->cfg.priority = 15;
-          slave->cfg.stack_size = 2048;
-          extract_slave_content(slave, slave_node);
-          add_common_node_to_linklist(&db->slave_list, (void*)slave);
-          db->slaves_number++;
-        }
+        traverese_slaves(slaves_nodes, db);
+      }
+      else if (!strcmp((const char *)slaves_nodes->name, "master"))
+      {
+        traverese_master(slaves_nodes, db);
       }
     }
   }
