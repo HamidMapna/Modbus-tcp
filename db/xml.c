@@ -279,6 +279,12 @@ static void extract_master_holds(master_t *master, xmlNode *master_child)
   extract_master_nodes_content(&master->hold_regs_list.data_nodes, &master->hold_regs_list.number, master_child);
 }
 
+static void extract_master_regs(master_t *master, xmlNode *master_child) {
+  master->input_regs_list.number = 0;
+  master->input_regs_list.data_nodes = NULL;
+  extract_master_nodes_content(&master->input_regs_list.data_nodes, &master->input_regs_list.number, master_child);
+}
+
 static void traverese_master(xmlNode *master_node, database_t *db)
 {
   master_t *master = malloc(sizeof(struct master));
@@ -303,6 +309,9 @@ static void traverese_master(xmlNode *master_node, database_t *db)
       else if (!xmlStrcmp(master_child->name, (const xmlChar *)"holds"))
       {
         extract_master_holds(master, master_child);
+      }
+      else if (!xmlStrcmp(master_child->name, (const xmlChar *)"regs")) {
+        extract_master_regs(master, master_child);
       }
     }
   }

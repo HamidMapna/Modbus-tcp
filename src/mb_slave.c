@@ -64,14 +64,16 @@ void mb_slave_bit_set (void * data, uint32_t address, int value)
       p[ix] &= ~BIT (offset);
 }
 
-uint16_t mb_slave_reg_get (void * data, uint32_t address)
+uint16_t mb_slave_reg_get(node_list_t *node_list, uint32_t address)
 {
-   uint8_t * p = (uint8_t *)data + address * sizeof (uint16_t);
-   return (p[0] << 8) | p[1];
+  uint16_t p = (uint16_t)find_address(node_list->data_nodes, address);
+   
+   return p;
 }
 
 void mb_slave_reg_set (void * data, uint32_t address, uint16_t value)
 {
+  
    uint8_t * p = (uint8_t *)data + address * sizeof (uint16_t);
 
    p[0] = value >> 8;
@@ -412,10 +414,7 @@ void mb_slave_handle_request (mb_slave_t * slave, pdu_txn_t * transaction)
       case PDU_READ_INPUT_REGISTERS:
          if (!mb_pdu_rx_bc (transport))
          {
-            //tx_count = mb_slave_read_registers (
-             //  transport,
-             // &slave->iomap->input_registers,
-             //  pdu);
+           tx_count = mb_slave_read_registers(transport, &slave->iomap->input_registers, &master->input_regs_list, pdu);
          }
          break;
       case PDU_READ_HOLDING_REGISTERS:

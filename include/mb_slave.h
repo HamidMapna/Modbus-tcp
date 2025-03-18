@@ -382,7 +382,7 @@ MB_EXPORT void mb_slave_bit_set (void * data, uint32_t address, int value);
  *
  * \return register value
  */
-MB_EXPORT uint16_t mb_slave_reg_get (void * data, uint32_t address);
+MB_EXPORT uint16_t mb_slave_reg_get (node_list_t * node_list, uint32_t address);
 
 /**
  * Set register value in modbus data.

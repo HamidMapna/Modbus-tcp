@@ -66,7 +66,7 @@ static int hold_get(uint16_t address, uint8_t *data, node_list_t *data_list, siz
    {
       uint32_t reg = address + offset;
 
-      mb_slave_reg_set (data, offset, hold[reg]);
+      //mb_slave_reg_set (data, offset, hold[reg]);
    }
    return 0;
 }
@@ -90,7 +90,13 @@ static int reg_get(uint16_t address, uint8_t *data, node_list_t *data_list, size
 
    for (offset = 0; offset < quantity; offset++)
    {
-      mb_slave_reg_set (data, offset, 0x1100 | (offset & 0xFF));
+     uint32_t reg = address + offset;
+     
+     if(reg >= data_list->number )
+       return EILLEGAL_DATA_ADDRESS;
+
+     uint16_t value = mb_slave_reg_get(data_list, reg);
+     mb_slave_reg_set(data, offset, value);
    }
    return 0;
 }
