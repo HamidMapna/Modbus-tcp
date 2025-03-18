@@ -183,30 +183,30 @@ static void extract_slave_node_content(Common_node_t **slave_content_node, int *
 
 static void extract_slave_input_regs(slave_t * slave, xmlNode * inputs_reg)
 {
-  slave->input_regs_list.input_regs_num = 0;
-  slave->input_regs_list.input_regs = NULL;
-  extract_slave_node_content(&slave->input_regs_list.input_regs, &slave->input_regs_list.input_regs_num, inputs_reg);
+  slave->input_regs_list.number = 0;
+  slave->input_regs_list.data_nodes = NULL;
+  extract_slave_node_content(&slave->input_regs_list.data_nodes, &slave->input_regs_list.number, inputs_reg);
 }
 
 static void extract_slave_holds(slave_t *slave, xmlNode *holds)
 {
-  slave->hold_regs_list.hold_regs_num = 0;
-  slave->hold_regs_list.holds_regs = NULL;
-  extract_slave_node_content(&slave->hold_regs_list.holds_regs, &slave->hold_regs_list.hold_regs_num, holds);
+  slave->hold_regs_list.number = 0;
+  slave->hold_regs_list.data_nodes = NULL;
+  extract_slave_node_content(&slave->hold_regs_list.data_nodes, &slave->hold_regs_list.number, holds);
 }
 
 static void extract_slave_input_desc(slave_t *slave, xmlNode *inputs_desc)
 {
-  slave->input_dsc_list.input_descs_num = 0;
-  slave->input_dsc_list.input_dsc = NULL;
-  extract_slave_node_content(&slave->input_dsc_list.input_dsc,  &slave->input_dsc_list.input_descs_num, inputs_desc);
+  slave->input_dsc_list.number = 0;
+  slave->input_dsc_list.data_nodes = NULL;
+  extract_slave_node_content(&slave->input_dsc_list.data_nodes,  &slave->input_dsc_list.number, inputs_desc);
 }
 
 static void extract_slave_coils(slave_t *slave, xmlNode *coils)
 {
-  slave->coils_list.coils_num = 0;
-  slave->coils_list.coils = NULL;
-  extract_slave_node_content(&slave->coils_list.coils, &slave->coils_list.coils_num, coils);
+  slave->coils_list.number = 0;
+  slave->coils_list.data_nodes = NULL;
+  extract_slave_node_content(&slave->coils_list.data_nodes, &slave->coils_list.number, coils);
 }
 
 static void extract_slave_content(slave_t *slave, xmlNode *slave_node)
@@ -259,16 +259,24 @@ void extract_master_nodes_content(Common_node_t **master_content_node, int *numb
 
 static void extract_master_coils(master_t *master, xmlNode *master_child)
 {
-  master->coils_list.coils_num = 0;
-  master->coils_list.coils = NULL;
-  extract_master_nodes_content(&master->coils_list.coils, &master->coils_list.coils_num, master_child);
+  master->coils_list.number = 0;
+  master->coils_list.data_nodes = NULL;
+  extract_master_nodes_content(&master->coils_list.data_nodes, &master->coils_list.number, master_child);
+}
+
+static void extract_master_inputs(master_t *master, xmlNode *master_child)
+{
+  master->input_dsc_list.number = 0;
+  master->input_dsc_list.data_nodes = NULL;
+  extract_master_nodes_content(&master->input_dsc_list.data_nodes,
+                               &master->input_dsc_list.number, master_child);
 }
 
 static void extract_master_holds(master_t *master, xmlNode *master_child)
 {
-  master->hold_regs_list.hold_regs_num = 0;
-  master->hold_regs_list.holds_regs = NULL;
-  extract_master_nodes_content(&master->hold_regs_list.holds_regs, &master->hold_regs_list.hold_regs_num, master_child);
+  master->hold_regs_list.number = 0;
+  master->hold_regs_list.data_nodes = NULL;
+  extract_master_nodes_content(&master->hold_regs_list.data_nodes, &master->hold_regs_list.number, master_child);
 }
 
 static void traverese_master(xmlNode *master_node, database_t *db)
@@ -288,6 +296,9 @@ static void traverese_master(xmlNode *master_node, database_t *db)
       if (!xmlStrcmp(master_child->name, (const xmlChar *)"coils"))
       {
         extract_master_coils(master, master_child);
+      }
+      if (!xmlStrcmp(master_child->name, (const xmlChar *)"inputs")) {
+        extract_master_inputs(master, master_child);
       }
       else if (!xmlStrcmp(master_child->name, (const xmlChar *)"holds"))
       {

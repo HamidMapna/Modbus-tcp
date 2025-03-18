@@ -16,6 +16,7 @@
 #include "mbus.h"
 #include "xml.h"
 #include "mb_slave.h"
+#include "slave.h"
 
 #define APP_MAIN_SLEEPTIME_US 5000 * 1000
 
@@ -55,11 +56,11 @@ static void mb_slave_thread(void *arg)
 {
   slave_t *slave = arg;
   while (true)
-  { 
-    monitor_slaves(slave->coils_list.coils, &slave->cfg);
-    monitor_slaves(slave->input_dsc_list.input_dsc, &slave->cfg);
-    monitor_slaves(slave->hold_regs_list.holds_regs, &slave->cfg);
-    monitor_slaves(slave->input_regs_list.input_regs, &slave->cfg);
+  {
+    monitor_slaves(slave->coils_list.data_nodes, &slave->cfg);
+    monitor_slaves(slave->input_dsc_list.data_nodes, &slave->cfg);
+    monitor_slaves(slave->hold_regs_list.data_nodes, &slave->cfg);
+    monitor_slaves(slave->input_regs_list.data_nodes, &slave->cfg);
     sleep(10 * 1000);
   }
 }
@@ -94,24 +95,19 @@ static void init_slaves (database_t *main_db)
    }
 }
 
-  mb_slave_t * mb_tcp_start (database_t * main_db)
+mb_slave_t *init_master(database_t * main_db)
 {
     mb_slave_t *slave;
     mb_transport_t *tcp;
     static const mb_tcp_cfg_t mb_tcp_cfg = {
-        .port = 8502,
+        .port = 502,
     };
 
     tcp = mb_tcp_init(&mb_tcp_cfg);
-    slave = mb_slave_init(tcp, main_db);
+    slave = mb_slave_init (&mb_slave_cfg, tcp, main_db);
     return slave;
   }
-  
-static void init_master(database_t *main_db)
-{
-  mb_slave_t *s = mb_tcp_start(main_db);
-}
-
+ 
 int main (int argc, char * argv[])
 {
    database_t *main_db= load_database();

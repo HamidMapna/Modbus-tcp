@@ -138,11 +138,22 @@
 			<address>0xAA</address>
 			<address>0x33</address>			
 		</coils>
+		<inputs>
+			<address>0x66</address>
+			<address>0xBB</address>
+			<address>0xCD</address>
+		</inputs>
 		<holds>
 			<address>0x1234</address>
 			<address>0x5678</address>
 			<address>0x55AA</address>
 			<address>0xAA55</address>
 		</holds>
+		<regs>
+			<address>0xABCD</address>
+			<address>0x12FE</address>
+			<address>0x0FFE</address>
+			<address>0x109A</address>
+		</regs>
 	</master>
 </root>

@@ -32,13 +32,24 @@
 
 #define PDU_TIMEOUT 5000 /* Timeout for rx retries (ticks) */
 
-int mb_slave_bit_get (void * data, uint32_t address)
+static uint16_t find_address(Common_node_t *nodes, uint32_t ix)
 {
+  int counter = 0;
+  while(nodes && counter++ < ix)
+    nodes = nodes->next;
+
+  master_address_t *node = (master_address_t*)nodes->object;
+  return node->addr;
+}
+
+int mb_slave_bit_get(node_list_t *data, uint32_t address)
+{  
    uint32_t ix = address / 8;
    uint32_t offset = address % 8;
-   uint8_t * p = data;
+ 
+   uint8_t p = (uint8_t)find_address(data->data_nodes, ix);
 
-   return (p[ix] & BIT (offset)) ? 1 : 0;
+   return (p & BIT (offset)) ? 1 : 0;
 }
 
 void mb_slave_bit_set (void * data, uint32_t address, int value)
@@ -67,10 +78,7 @@ void mb_slave_reg_set (void * data, uint32_t address, uint16_t value)
    p[1] = value & 0xFF;
 }
 
-static int mb_slave_read_bits (
-   mb_transport_t * transport,
-   const mb_iotable_t * iotable,
-   pdu_t * pdu)
+static int mb_slave_read_bits(mb_transport_t *transport, const mb_iotable_t *iotable, node_list_t* data_list, pdu_t * pdu)
 {
    pdu_read_t * request = &pdu->read;
    pdu_read_response_t * response = &pdu->read_response;
@@ -100,7 +108,7 @@ static int mb_slave_read_bits (
    /* Build response */
    response->count = count;
 
-   error = iotable->get (address, pData, quantity);
+   error = iotable->get(address, pData, data_list, quantity);
    if (error)
       return error;
 
@@ -113,10 +121,7 @@ static int mb_slave_read_bits (
    return sizeof (*response) + response->count;
 }
 
-static int mb_slave_read_registers (
-   mb_transport_t * transport,
-   const mb_iotable_t * iotable,
-   pdu_t * pdu)
+static int mb_slave_read_registers(mb_transport_t *transport, const mb_iotable_t *iotable, node_list_t *data_list, pdu_t * pdu)
 {
    pdu_read_t * request = &pdu->read;
    pdu_read_response_t * response = &pdu->read_response;
@@ -140,17 +145,14 @@ static int mb_slave_read_registers (
    /* Build response */
    response->count = 2 * quantity;
 
-   error = iotable->get (address, pData, quantity);
+   error = iotable->get(address, pData, data_list, quantity);
    if (error)
       return error;
 
    return sizeof (*response) + response->count;
 }
 
-static int mb_slave_write_bit (
-   mb_transport_t * transport,
-   const mb_iotable_t * iotable,
-   pdu_t * pdu)
+static int mb_slave_write_bit(mb_transport_t *transport, const mb_iotable_t *iotable, node_list_t *data_list, pdu_t * pdu)
 {
    pdu_write_single_t * request = &pdu->write_single;
    uint16_t address;
@@ -172,7 +174,7 @@ static int mb_slave_write_bit (
 
    bit = (value == 0xFF00) ? 1 : 0;
 
-   error = iotable->set (address, &bit, 1);
+   error = iotable->set(address, &bit, data_list, 1);
    if (error)
       return error;
 
@@ -180,10 +182,7 @@ static int mb_slave_write_bit (
    return sizeof (pdu_write_single_response_t);
 }
 
-static int mb_slave_write_bits (
-   mb_transport_t * transport,
-   const mb_iotable_t * iotable,
-   pdu_t * pdu,
+static int mb_slave_write_bits(mb_transport_t *transport, const mb_iotable_t *iotable, node_list_t *data_list, pdu_t * pdu,
    size_t rx_count)
 {
    pdu_write_t * request = &pdu->write;
@@ -215,7 +214,7 @@ static int mb_slave_write_bits (
    if (iotable->set == NULL)
       return EILLEGAL_FUNCTION;
 
-   error = iotable->set (address, pData, quantity);
+   error = iotable->set(address, pData, data_list, quantity);
    if (error)
       return error;
 
@@ -223,10 +222,7 @@ static int mb_slave_write_bits (
    return sizeof (pdu_write_response_t);
 }
 
-static int mb_slave_write_register (
-   mb_transport_t * transport,
-   const mb_iotable_t * iotable,
-   pdu_t * pdu)
+static int mb_slave_write_register(mb_transport_t *transport, const mb_iotable_t *iotable, node_list_t *data_list, pdu_t * pdu)
 {
    pdu_write_single_t * request = &pdu->write_single;
    uint16_t address;
@@ -240,7 +236,7 @@ static int mb_slave_write_register (
    if (iotable->set == NULL)
       return EILLEGAL_FUNCTION;
 
-   error = iotable->set (address, (uint8_t *)&request->value, 1);
+   error = iotable->set(address, (uint8_t *)&request->value, data_list, 1);
    if (error)
       return error;
 
@@ -248,10 +244,7 @@ static int mb_slave_write_register (
    return sizeof (pdu_write_single_response_t);
 }
 
-static int mb_slave_write_registers (
-   mb_transport_t * transport,
-   const mb_iotable_t * iotable,
-   pdu_t * pdu,
+static int mb_slave_write_registers(mb_transport_t *transport, const mb_iotable_t *iotable, node_list_t *data_list, pdu_t * pdu,
    size_t rx_count)
 {
    pdu_write_t * request = &pdu->write;
@@ -278,7 +271,7 @@ static int mb_slave_write_registers (
    if (iotable->set == NULL)
       return EILLEGAL_FUNCTION;
 
-   error = iotable->set (address, pData, quantity);
+   error = iotable->set(address, pData, data_list, quantity);
    if (error)
       return error;
 
@@ -286,11 +279,7 @@ static int mb_slave_write_registers (
    return sizeof (pdu_write_response_t);
 }
 
-static int mb_slave_read_write_registers (
-   mb_transport_t * transport,
-   const mb_iotable_t * iotable,
-   pdu_t * pdu,
-   size_t rx_count)
+static int mb_slave_read_write_registers(mb_transport_t *transport, const mb_iotable_t *iotable, node_list_t *data_list, pdu_t * pdu, size_t rx_count)
 {
    pdu_read_write_t * request = &pdu->read_write;
    pdu_read_response_t * response = &pdu->read_response;
@@ -331,13 +320,14 @@ static int mb_slave_read_write_registers (
       return EILLEGAL_FUNCTION;
 
    /* Perform write */
-   error = iotable->set (write_address, request->data, write_quantity);
+   error =
+       iotable->set(write_address, request->data, data_list, write_quantity);
    if (error)
       return error;
 
    /* Build response */
    response->count = 2 * read_quantity;
-   error = iotable->get (read_address, response->data, read_quantity);
+   error = iotable->get(read_address, response->data, data_list, read_quantity);
    if (error)
       return error;
 
@@ -391,17 +381,17 @@ static int mb_slave_vendor (
 
    return EILLEGAL_FUNCTION;
 }
-/*
+
 void mb_slave_handle_request (mb_slave_t * slave, pdu_txn_t * transaction)
 {
    mb_transport_t * transport = slave->transport;
    pdu_t * pdu = transaction->data;
    int rx_count;
    int tx_count = 0;
-*/
+   master_t *master = (master_t *)(((Common_node_t*)slave->db->master_node)->object);
    /* Wait for incoming request. Set a timeout to be able to retry
       the call if the slave ID changes. */
-/* rx_count = mb_pdu_rx (transport, transaction, PDU_TIMEOUT);
+ rx_count = mb_pdu_rx (transport, transaction, PDU_TIMEOUT);
 
    if (rx_count > 0)
    {
@@ -410,72 +400,70 @@ void mb_slave_handle_request (mb_slave_t * slave, pdu_txn_t * transaction)
       case PDU_READ_COILS:
          if (!mb_pdu_rx_bc (transport))
          {
-            tx_count =
-               mb_slave_read_bits (transport, &slave->db->coils, pdu);
+           tx_count = mb_slave_read_bits(transport, &slave->iomap->coils, &master->coils_list, pdu);
          }
          break;
       case PDU_READ_INPUTS:
          if (!mb_pdu_rx_bc (transport))
          {
-            tx_count =
-               mb_slave_read_bits (transport, &slave->iomap->inputs, pdu);
+           tx_count = mb_slave_read_bits(transport, &slave->iomap->inputs, &master->input_dsc_list, pdu);
          }
          break;
       case PDU_READ_INPUT_REGISTERS:
          if (!mb_pdu_rx_bc (transport))
          {
-            tx_count = mb_slave_read_registers (
-               transport,
-               &slave->iomap->input_registers,
-               pdu);
+            //tx_count = mb_slave_read_registers (
+             //  transport,
+             // &slave->iomap->input_registers,
+             //  pdu);
          }
          break;
       case PDU_READ_HOLDING_REGISTERS:
          if (!mb_pdu_rx_bc (transport))
          {
-            tx_count = mb_slave_read_registers (
-               transport,
-               &slave->iomap->holding_registers,
-               pdu);
+            //tx_count = mb_slave_read_registers (
+            //   transport,
+            //   &slave->iomap->holding_registers,
+            //   pdu);
          }
          break;
       case PDU_WRITE_COIL:
-         tx_count = mb_slave_write_bit (transport, &slave->iomap->coils, pdu);
+         //tx_count = mb_slave_write_bit (transport, &slave->iomap->coils, pdu);
          break;
       case PDU_WRITE_HOLDING_REGISTER:
-         tx_count = mb_slave_write_register (
-            transport,
-            &slave->iomap->holding_registers,
-            pdu);
+         //tx_count = mb_slave_write_register (
+          //  transport,
+          //  &slave->iomap->holding_registers,
+          //  pdu);
          break;
       case PDU_WRITE_COILS:
-         tx_count =
-            mb_slave_write_bits (transport, &slave->iomap->coils, pdu, rx_count);
+         //tx_count =
+            //mb_slave_write_bits (transport, &slave->iomap->coils, pdu, rx_count);
          break;
       case PDU_WRITE_HOLDING_REGISTERS:
-         tx_count = mb_slave_write_registers (
-            transport,
-            &slave->iomap->holding_registers,
-            pdu,
-            rx_count);
+         //tx_count = mb_slave_write_registers (
+          //  transport,
+          //  &slave->iomap->holding_registers,
+          //  pdu,
+          //  rx_count);
          break;
       case PDU_READ_WRITE_HOLDING_REGISTERS:
-         tx_count = mb_slave_read_write_registers (
+         /* tx_count = mb_slave_read_write_registers (
             transport,
             &slave->iomap->holding_registers,
             pdu,
-            rx_count);
+            rx_count);*/
          break;
       case PDU_DIAGNOSTICS:
-         tx_count = mb_slave_diagnostics (transport, pdu, rx_count);
+         //tx_count = mb_slave_diagnostics (transport, pdu, rx_count);
          break;
       default:
-         tx_count = mb_slave_vendor (transport, slave->iomap, pdu, rx_count);
+         //tx_count = mb_slave_vendor (transport, slave->iomap, pdu, rx_count);
          break;
       }
-      */
+      
       /* Check for exception */
-/* if (tx_count < 0)
+ if (tx_count < 0)
       {
          pdu_exception_t * exception = &pdu->exception;
 
@@ -484,28 +472,28 @@ void mb_slave_handle_request (mb_slave_t * slave, pdu_txn_t * transaction)
 
          tx_count = sizeof (*exception);
       }
-      */
+      
       /* Respond only if no further messages have appeared on bus */
-/* if (mb_pdu_rx_avail (transport))
+ if (mb_pdu_rx_avail (transport))
       {
          /* The master has timed out and sent a new request. We
           * have no way of knowing when this request arrived; the
           * master may have timed out waiting for a response to
           * this request also. To be safe we ignore this request.
           */
-/*
+
          rx_count = mb_pdu_rx (transport, transaction, 0);
          (void)rx_count;
       }
       /* No response to broadcast messages. */
-/* else if (!mb_pdu_rx_bc (transport))
+ else if (!mb_pdu_rx_bc (transport))
       {
          /* Send response */
-/* mb_pdu_tx (transport, transaction, tx_count);
+         mb_pdu_tx (transport, transaction, tx_count);
       }
    }
 }
-*/
+
 static void mb_slave (void * arg)
 {
    mb_slave_t * slave = arg;
@@ -531,8 +519,7 @@ static void mb_slave (void * arg)
          continue;
 
       transaction.unit = slave->id;
-
-      //mb_slave_handle_request (slave, &transaction);
+      mb_slave_handle_request (slave, &transaction);
    }
 }
 
@@ -551,7 +538,7 @@ void mb_slave_shutdown (mb_slave_t * slave)
    slave->running = 0;
 }
 
-mb_slave_t * mb_slave_init (mb_transport_t * transport, database_t * main_db)
+mb_slave_t * mb_slave_init (const mb_slave_cfg_t * cfg, mb_transport_t * transport, database_t * main_db)
 {
    mb_slave_t * slave;
 
@@ -559,7 +546,7 @@ mb_slave_t * mb_slave_init (mb_transport_t * transport, database_t * main_db)
    slave = malloc (sizeof (mb_slave_t));
    CC_ASSERT (slave != NULL);
 
-   //slave->iomap = cfg->iomap;
+   slave->iomap = cfg->iomap;
    slave->db = main_db;
    /* Set transport layer */
    slave->transport = transport;
@@ -571,8 +558,8 @@ mb_slave_t * mb_slave_init (mb_transport_t * transport, database_t * main_db)
    /* Start slave task */
    os_thread_create (
       "tMbSlave",
-      15,
-      2048,
+      cfg->priority,
+      cfg->stack_size,
       mb_slave,
       slave);
 

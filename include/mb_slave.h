@@ -60,7 +60,7 @@ typedef struct mb_iotable
     *
     * \return 0 on success, modbus exception otherwise
     */
-   int (*get) (uint16_t address, uint8_t * data, size_t quantity);
+   int (*get)(uint16_t address, uint8_t *data, node_list_t *data_list, size_t quantity);
 
    /**
     * Set callback. This function is called in response to a write
@@ -81,7 +81,7 @@ typedef struct mb_iotable
     *
     * \return 0 on success, modbus exception otherwise
     */
-   int (*set) (uint16_t address, uint8_t * data, size_t quantity);
+   int (*set)(uint16_t address, uint8_t *data, node_list_t *data_list, size_t quantity);
 
 } mb_iotable_t;
 
@@ -145,7 +145,7 @@ typedef struct mb_slave
    int running;
    mb_transport_t * transport;
    database_t * db;
-  // const mb_iomap_t * iomap;
+   const mb_iomap_t * iomap;
 } mb_slave_t;
 
 /**
@@ -311,7 +311,8 @@ typedef struct mb_slave
  * \return slave handle to be used in further operations
  */
 MB_EXPORT mb_slave_t * mb_slave_init (   
-   mb_transport_t * transport,
+    const mb_slave_cfg_t*,
+    mb_transport_t * transport,
    database_t * main_db
 );
 
@@ -353,7 +354,7 @@ MB_EXPORT void mb_slave_id_set (mb_slave_t * slave, uint8_t id);
  *
  * \return 0 if bit is clear, 1 if bit is set
  */
-MB_EXPORT int mb_slave_bit_get (void * data, uint32_t address);
+MB_EXPORT int mb_slave_bit_get(node_list_t * data, uint32_t address);
 
 /**
  * Set a bit in the bit-string \a data
