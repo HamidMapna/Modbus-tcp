@@ -420,10 +420,7 @@ void mb_slave_handle_request (mb_slave_t * slave, pdu_txn_t * transaction)
       case PDU_READ_HOLDING_REGISTERS:
          if (!mb_pdu_rx_bc (transport))
          {
-            //tx_count = mb_slave_read_registers (
-            //   transport,
-            //   &slave->iomap->holding_registers,
-            //   pdu);
+           tx_count = mb_slave_read_registers(transport, &slave->iomap->holding_registers, &master->hold_regs_list, pdu);
          }
          break;
       case PDU_WRITE_COIL:
