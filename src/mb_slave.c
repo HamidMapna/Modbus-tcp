@@ -463,11 +463,7 @@ void mb_slave_handle_request (mb_slave_t * slave, pdu_txn_t * transaction)
         tx_count = mb_slave_write_bits(transport, &slave->iomap->coils, &master->coils_list, pdu, rx_count);
          break;
       case PDU_WRITE_HOLDING_REGISTERS:
-         //tx_count = mb_slave_write_registers (
-          //  transport,
-          //  &slave->iomap->holding_registers,
-          //  pdu,
-          //  rx_count);
+        tx_count = mb_slave_write_registers(transport, &slave->iomap->holding_registers, &master->hold_regs_list, pdu, rx_count);
          break;
       case PDU_READ_WRITE_HOLDING_REGISTERS:
          /* tx_count = mb_slave_read_write_registers (
