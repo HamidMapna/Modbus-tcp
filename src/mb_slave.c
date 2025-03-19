@@ -32,27 +32,47 @@
 
 #define PDU_TIMEOUT 5000 /* Timeout for rx retries (ticks) */
 
-static uint16_t find_address(Common_node_t *nodes, uint32_t ix)
+static uint16_t* find_address(Common_node_t *nodes, uint32_t ix)
 {
   int counter = 0;
   while(nodes && counter++ < ix)
     nodes = nodes->next;
 
   master_address_t *node = (master_address_t*)nodes->object;
-  return node->addr;
+  return &node->addr;
 }
 
-int mb_slave_bit_get(node_list_t *data, uint32_t address)
+int mb_slave_bit_get_from_node_list(node_list_t *data, uint32_t address)
 {  
    uint32_t ix = address / 8;
    uint32_t offset = address % 8;
  
-   uint8_t p = (uint8_t)find_address(data->data_nodes, ix);
+   uint8_t* p = (uint8_t*)find_address(data->data_nodes, ix);
 
-   return (p & BIT (offset)) ? 1 : 0;
+   return (*p & BIT (offset)) ? 1 : 0;
 }
 
-void mb_slave_bit_set (void * data, uint32_t address, int value)
+int mb_slave_bit_get_from_char_array(void *data, uint32_t address)
+{
+  uint32_t ix = address / 8;
+  uint32_t offset = address % 8;
+  uint8_t *p = data;
+
+  return (p[ix] & BIT(offset)) ? 1 : 0;
+}
+
+void mb_slave_bit_set_node_list(node_list_t *data, uint32_t address, int value)
+{
+  uint32_t ix = address / 8;
+  uint32_t offset = address % 8;
+  uint8_t *p = (uint8_t*)find_address(data->data_nodes, ix);
+
+  if (value)
+    *p |= BIT(offset);
+  else
+    *p &= ~BIT(offset);
+}
+void mb_slave_bit_set_char_array(void * data, uint32_t address, int value)
 {
    uint32_t ix = address / 8;
    uint32_t offset = address % 8;
@@ -64,10 +84,9 @@ void mb_slave_bit_set (void * data, uint32_t address, int value)
       p[ix] &= ~BIT (offset);
 }
 
-uint16_t mb_slave_reg_get(node_list_t *node_list, uint32_t address)
+uint16_t mb_slave_reg_get_from_node_list(node_list_t *node_list, uint32_t address)
 {
-  uint16_t p = (uint16_t)find_address(node_list->data_nodes, address);
-   
+  uint16_t p = (uint16_t)find_address(node_list->data_nodes, address);   
    return p;
 }
 
@@ -117,7 +136,7 @@ static int mb_slave_read_bits(mb_transport_t *transport, const mb_iotable_t *iot
    /* Reset pad bits */
    for (ix = quantity; ix < count * 8; ix++)
    {
-      mb_slave_bit_set (pData, ix, 0);
+      mb_slave_bit_set_char_array(pData, ix, 0);
    }
 
    return sizeof (*response) + response->count;
@@ -424,7 +443,7 @@ void mb_slave_handle_request (mb_slave_t * slave, pdu_txn_t * transaction)
          }
          break;
       case PDU_WRITE_COIL:
-         //tx_count = mb_slave_write_bit (transport, &slave->iomap->coils, pdu);
+        tx_count = mb_slave_write_bit(transport, &slave->iomap->coils, &master->coils_list, pdu);
          break;
       case PDU_WRITE_HOLDING_REGISTER:
          //tx_count = mb_slave_write_register (

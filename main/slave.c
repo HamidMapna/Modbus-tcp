@@ -5,9 +5,6 @@
 #include "osal.h"
 #include <string.h>
 
-static uint8_t coils[2] = {0x55, 0xAA};
-static uint16_t hold[4] = {0x1234, 0x5678, 0x55AA, 0xAA55};
-
 static int coil_get(uint16_t address, uint8_t *data, node_list_t *data_list, size_t quantity)
 {
    uint16_t offset;
@@ -20,8 +17,8 @@ static int coil_get(uint16_t address, uint8_t *data, node_list_t *data_list, siz
         return EILLEGAL_DATA_ADDRESS;
       
       int value;
-      value = mb_slave_bit_get (data_list, bit);
-      mb_slave_bit_set (data, offset, value);
+      value = mb_slave_bit_get_from_node_list(data_list, bit);
+      mb_slave_bit_set_char_array(data, offset, value);
    }
    return 0;
 }
@@ -33,10 +30,13 @@ static int coil_set(uint16_t address, uint8_t *data, node_list_t *data_list, siz
    for (offset = 0; offset < quantity; offset++)
    {
       uint32_t bit = address + offset;
-      int value;
 
-      value = mb_slave_bit_get (data, offset);
-      mb_slave_bit_set (coils, bit, value);
+      if (bit >= (data_list->number * 8)) // out of available address range
+        return EILLEGAL_DATA_ADDRESS;
+      
+      int value;
+      value = mb_slave_bit_get_from_char_array(data, offset);
+      mb_slave_bit_set_node_list(data_list, bit, value);
    }
    return 0;
 }
@@ -51,9 +51,9 @@ static int input_get(uint16_t address, uint8_t *data, node_list_t *data_list, si
       
       if(bit >= (data_list->number * 8))
         return EILLEGAL_DATA_ADDRESS;
-      
-      int value = mb_slave_bit_get(data_list, bit);
-      mb_slave_bit_set(data, offset, value);
+
+      int value = mb_slave_bit_get_from_node_list(data_list, bit);
+      mb_slave_bit_set_char_array(data, offset, value);
    }
    return 0;
 }
@@ -69,7 +69,7 @@ static int hold_get(uint16_t address, uint8_t *data, node_list_t *data_list, siz
       if (reg >= data_list->number)
         return EILLEGAL_DATA_ADDRESS;
 
-      uint16_t value = mb_slave_reg_get(data_list, reg);
+      uint16_t value = mb_slave_reg_get_from_node_list(data_list, reg);
       mb_slave_reg_set(data, offset, value);      
    }
    return 0;
@@ -83,7 +83,7 @@ static int hold_set(uint16_t address, uint8_t *data, node_list_t *data_list, siz
    {
       uint32_t reg = address + offset;
 
-      hold[reg] = mb_slave_reg_get (data, offset);
+      //hold[reg] = mb_slave_reg_get (data, offset);
    }
    return 0;
 }
@@ -99,7 +99,7 @@ static int reg_get(uint16_t address, uint8_t *data, node_list_t *data_list, size
      if(reg >= data_list->number )
        return EILLEGAL_DATA_ADDRESS;
 
-     uint16_t value = mb_slave_reg_get(data_list, reg);
+     uint16_t value = mb_slave_reg_get_from_node_list(data_list, reg);
      mb_slave_reg_set(data, offset, value);
    }
    return 0;

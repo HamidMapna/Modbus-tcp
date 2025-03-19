@@ -354,7 +354,9 @@ MB_EXPORT void mb_slave_id_set (mb_slave_t * slave, uint8_t id);
  *
  * \return 0 if bit is clear, 1 if bit is set
  */
-MB_EXPORT int mb_slave_bit_get(node_list_t * data, uint32_t address);
+MB_EXPORT int mb_slave_bit_get_from_node_list(node_list_t * data, uint32_t address);
+
+MB_EXPORT int mb_slave_bit_get_from_char_array(void* data, uint32_t address);
 
 /**
  * Set a bit in the bit-string \a data
@@ -367,7 +369,8 @@ MB_EXPORT int mb_slave_bit_get(node_list_t * data, uint32_t address);
  * \param address       0-based index of bit to set
  * \param value         new value (0 to clear, non-zero to set)
  */
-MB_EXPORT void mb_slave_bit_set (void * data, uint32_t address, int value);
+MB_EXPORT void mb_slave_bit_set_char_array(void * data, uint32_t address, int value);
+MB_EXPORT void mb_slave_bit_set_node_list(node_list_t *data_list, uint32_t address, int value);
 
 /**
  * Get register value from modbus data.
@@ -382,7 +385,7 @@ MB_EXPORT void mb_slave_bit_set (void * data, uint32_t address, int value);
  *
  * \return register value
  */
-MB_EXPORT uint16_t mb_slave_reg_get (node_list_t * node_list, uint32_t address);
+MB_EXPORT uint16_t mb_slave_reg_get_from_node_list(node_list_t * node_list, uint32_t address);
 
 /**
  * Set register value in modbus data.
