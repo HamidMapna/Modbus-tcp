@@ -466,17 +466,13 @@ void mb_slave_handle_request (mb_slave_t * slave, pdu_txn_t * transaction)
         tx_count = mb_slave_write_registers(transport, &slave->iomap->holding_registers, &master->hold_regs_list, pdu, rx_count);
          break;
       case PDU_READ_WRITE_HOLDING_REGISTERS:
-         /* tx_count = mb_slave_read_write_registers (
-            transport,
-            &slave->iomap->holding_registers,
-            pdu,
-            rx_count);*/
+        tx_count = mb_slave_read_write_registers(transport, &slave->iomap->holding_registers, &master->hold_regs_list, pdu, rx_count);
          break;
       case PDU_DIAGNOSTICS:
-         //tx_count = mb_slave_diagnostics (transport, pdu, rx_count);
+         tx_count = mb_slave_diagnostics (transport, pdu, rx_count);
          break;
       default:
-         //tx_count = mb_slave_vendor (transport, slave->iomap, pdu, rx_count);
+         tx_count = mb_slave_vendor (transport, slave->iomap, pdu, rx_count);
          break;
       }
       
