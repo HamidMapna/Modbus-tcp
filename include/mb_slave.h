@@ -148,168 +148,6 @@ typedef struct mb_slave
    const mb_iomap_t * iomap;
 } mb_slave_t;
 
-/**
- * Initialise the modbus slave stack
- *
- * The \a cfg parameter is used to configure the slave behaviour. It
- * contains the iomap which defines how the slave responds to modbus
- * requests. The following examples illustrates how to write a simple
- * slave.
- *
- * \code
- * #include <modbus/mb_slave.h>
- *
- * static uint8_t coils[2] = { 0 };
- * static uint16_t hold[4] = { 0 };
- *
- * static int coil_get (uint16_t address, uint8_t * data, size_t quantity)
- * {
- *    uint16_t offset;
- *
- *    for (offset = 0; offset < quantity; offset++)
- *    {
- *       uint32_t bit = address + offset;
- *       int value;
- *
- *       value = mb_slave_bit_get (coils, bit);
- *       mb_slave_bit_set (data, offset, value);
- *    }
- *    return 0;
- * }
- *
- * static int coil_set (uint16_t address, uint8_t * data, size_t quantity)
- * {
- *    uint16_t offset;
- *
- *    for (offset = 0; offset < quantity; offset++)
- *    {
- *       uint32_t bit = address + offset;
- *       int value;
- *
- *       value = mb_slave_bit_get (data, offset);
- *       mb_slave_bit_set (coils, bit, value);
- *    }
- *    return 0;
- * }
- *
- * static int input_get (uint16_t address, uint8_t * data, size_t quantity)
- * {
- *    uint16_t offset;
- *
- *    for (offset = 0; offset < quantity; offset++)
- *    {
- *       mb_slave_bit_set (data, offset, 0);
- *    }
- *    return 0;
- * }
- *
- * static int hold_get (uint16_t address, uint8_t * data, size_t quantity)
- * {
- *    uint16_t offset;
- *
- *    for (offset = 0; offset < quantity; offset++)
- *    {
- *       uint32_t reg = address + offset;
- *
- *       mb_slave_reg_set (data, offset, hold[reg]);
- *    }
- *    return 0;
- * }
- *
- * static int hold_set (uint16_t address, uint8_t * data, size_t quantity)
- * {
- *    uint16_t offset;
- *
- *    for (offset = 0; offset < quantity; offset++)
- *    {
- *       uint32_t reg = address + offset;
- *
- *       hold[reg] = mb_slave_reg_get (data, offset);
- *    }
- *    return 0;
- * }
- *
- * static int reg_get (uint16_t address, uint8_t * data, size_t quantity)
- * {
- *    uint16_t offset;
- *
- *    for (offset = 0; offset < quantity; offset++)
- *    {
- *       mb_slave_reg_set (data, offset, 0x1234);
- *    }
- *    return 0;
- * }
- *
- * static int ping (uint8_t * data, size_t rx_count)
- * {
- *    char * message = "Hello World";
- *    memcpy (data, message, strlen(message));
- *    return strlen(message);
- * }
- *
- * static const mb_vendor_func_t vendor_funcs[] =
- * {
- *    { 101, ping },
- * };
- *
- * static const mb_iomap_t mb_slave_iomap =
- * {
- *    .coils             = { 16, coil_get, coil_set },  // 16 coils
- *    .inputs            = { 2, input_get, NULL },      // 2 input status bits
- *    .holding_registers = { 4, hold_get, hold_set },   // 4 holding registers
- *    .input_registers   = { 5, reg_get, NULL },        // 5 input registers
- *    .num_vendor_funcs  = NELEMENTS (vendor_funcs),    // 1 vendor function
- *    .vendor_funcs      = vendor_funcs,
- * };
- *
- * static const mb_rtu_cfg_t mb_rtu_cfg =
- * {
- *    .serial = "/sio0",
- *    .sio_cfg   = &sio_cfg,
- *    .tx_enable = tx_en,
- *    .tmr_init  = mb_tmr_init,
- *    .tmr_start = mb_tmr_start,
- * };
- *
- * static const mb_slave_cfg_t mb_slave_cfg =
- * {
- *    .id = 2,                          // Slave ID: 2
- *    .priority = 15,
- *    .stack_size = 1024,
- *    .iomap = &mb_slave_iomap
- * };
- *
- * mb_slave_t * mb_start (void)
- * {
- *    mb_slave_t * slave;
- *    mb_transport_t * rtu;
- *
- *    rtu = mb_rtu_init (&mb_rtu_cfg);
- *    slave = mb_slave_init (&mb_slave_cfg, rtu);
- *    return slave;
- * }
- * \endcode
- *
- * The example would create an RTU modbus slave with ID 2. The slave has 16
- * coils, 2 input status bits, 4 holding registers and 5 input
- * registers. The input status bits return the constant value 0,
- * whereas the input registers return the constant value 0x1234. The
- * coils and holding registers can be written and read. There is one
- * vendor function (function code 101) that returns the string "Hello
- * World" when called.
- *
- * The callbacks return 0 on success, or a modbus exception code as
- * documented in mb_error.h, except for the vendor function callback
- * which returns the size of the response or a modbus exception code.
- *
- * This function returns a handle to the slave which can be used for
- * further operations as documented below.
- *
- * \param cfg           Slave configuration
- * \param transport     Handle to transport data layer
- *
- * \return slave handle to be used in further operations
- */
 MB_EXPORT mb_slave_t * mb_slave_init (   
     const mb_slave_cfg_t*,
     mb_transport_t * transport,
@@ -386,6 +224,7 @@ MB_EXPORT void mb_slave_bit_set_node_list(node_list_t *data_list, uint32_t addre
  * \return register value
  */
 MB_EXPORT uint16_t mb_slave_reg_get_from_node_list(node_list_t * node_list, uint32_t address);
+MB_EXPORT uint16_t mb_slave_reg_get_from_char_array(void *data, uint32_t address);
 
 /**
  * Set register value in modbus data.
@@ -400,6 +239,7 @@ MB_EXPORT uint16_t mb_slave_reg_get_from_node_list(node_list_t * node_list, uint
  * \param value         new value
  */
 MB_EXPORT void mb_slave_reg_set (void * data, uint32_t address, uint16_t value);
+MB_EXPORT void mb_slave_reg_set_node_list(node_list_t *node_list, uint32_t address, uint16_t value);
 
 /**
  * \internal

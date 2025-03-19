@@ -84,10 +84,21 @@ void mb_slave_bit_set_char_array(void * data, uint32_t address, int value)
       p[ix] &= ~BIT (offset);
 }
 
+uint16_t mb_slave_reg_get_from_char_array(void *data, uint32_t address)
+{
+  uint8_t *p = (uint8_t*)data + address * sizeof(uint16_t);
+  return CC_FROM_BE16(*(uint16_t*)p);
+}
 uint16_t mb_slave_reg_get_from_node_list(node_list_t *node_list, uint32_t address)
 {
-  uint16_t p = (uint16_t)find_address(node_list->data_nodes, address);   
-   return p;
+  uint16_t *p = (uint16_t*)find_address(node_list->data_nodes, address);   
+   return *p;
+}
+
+void mb_slave_reg_set_node_list(node_list_t *data, uint32_t reg, uint16_t value)
+{
+  uint16_t *p = (uint16_t *)find_address(data->data_nodes, reg);
+  *p = value;
 }
 
 void mb_slave_reg_set (void * data, uint32_t address, uint16_t value)
@@ -443,13 +454,10 @@ void mb_slave_handle_request (mb_slave_t * slave, pdu_txn_t * transaction)
          }
          break;
       case PDU_WRITE_COIL:
-        tx_count = mb_slave_write_bit(transport, &slave->iomap->coils, &master->coils_list, pdu);
+           tx_count = mb_slave_write_bit(transport, &slave->iomap->coils, &master->coils_list, pdu);
          break;
       case PDU_WRITE_HOLDING_REGISTER:
-         //tx_count = mb_slave_write_register (
-          //  transport,
-          //  &slave->iomap->holding_registers,
-          //  pdu);
+        tx_count = mb_slave_write_register(transport, &slave->iomap->holding_registers, &master->hold_regs_list, pdu);
          break;
       case PDU_WRITE_COILS:
          //tx_count =

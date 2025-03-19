@@ -82,8 +82,12 @@ static int hold_set(uint16_t address, uint8_t *data, node_list_t *data_list, siz
    for (offset = 0; offset < quantity; offset++)
    {
       uint32_t reg = address + offset;
-
-      //hold[reg] = mb_slave_reg_get (data, offset);
+      
+      if (reg >= data_list->number)
+        return EILLEGAL_DATA_ADDRESS;
+      
+      uint16_t value = mb_slave_reg_get_from_char_array(data, offset);
+      mb_slave_reg_set_node_list(data_list, reg, value);
    }
    return 0;
 }
